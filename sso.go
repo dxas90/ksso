@@ -33,6 +33,13 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 func HTTPRequestExecutor(re client.HTTPRequestExecutor) client.HTTPRequestExecutor {
 	return func(ctx context.Context, req *http.Request) (resp *http.Response, err error) {
 		if err = modifyRequest(req); err != nil {
+			if resp == nil{
+					resp = &http.Response{
+						Request:    req,
+						Header:     http.Header{},
+						StatusCode: http.StatusOK,
+					}
+				}
 			respErr := modifyResponse(resp, err)
 			if respErr != nil{
 				return
