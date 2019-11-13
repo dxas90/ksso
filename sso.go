@@ -2,19 +2,21 @@ package sso
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/devopsfaith/krakend/config"
+	"github.com/devopsfaith/krakend/logging"
 	"github.com/devopsfaith/krakend/proxy"
 	"github.com/devopsfaith/krakend/transport/http/client"
-	"github.com/devopsfaith/krakend/logging"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"context"
-	"errors"
-	"encoding/json"
 )
+
+const Namespace = "github.com/gs012345/sso"
 
 func SsoNewBackendFactory(logger logging.Logger, re client.HTTPRequestExecutor) proxy.BackendFactory {
 	return NewConfiguredBackendFactory(logger, func(_ *config.Backend) client.HTTPRequestExecutor { return re })
@@ -25,6 +27,13 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 	return func(remote *config.Backend) proxy.Proxy {
 		//logger.Error(result, remote.ExtraConfig)
 		re := ref(remote)  // 这个是可以获取到配置参数的
+		ok, err := ConfigGetter(remote.ExtraConfig)
+		if err != nil{ // 不能存在或者不生效的话, 都不能, 都返回默认的
+			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
+		}
+		if !ok{
+			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
+		} // 如果存在的话, 走插件处理...
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re), remote.Decoder)
 	}
 
@@ -179,4 +188,25 @@ type Response struct {
 	ErrorId int `json:"error_id"`
 	Reason string `json:"reason"`
 	Desc string `json:"desc"`
+}
+
+func ConfigGetter(e config.ExtraConfig) (bool, error) {
+	_, ok := e[Namespace]
+	if !ok {
+		return false, nil
+	}
+	return true, nil
+	//data, ok := cfg.(map[string]interface{})
+	//if !ok {
+	//	return false, ErrEmptyResponse
+	//}
+
+	//raw, err := json.Marshal(data)
+	//if err != nil {
+	//	return false, ErrEmptyResponse
+	//}
+	//
+	//r, err := parse.FromJSON(raw)
+	//
+	//return true, nil
 }
