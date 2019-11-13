@@ -26,14 +26,17 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 	//parse.Register("static.Modifier", staticModifierFromJSON)
 	return func(remote *config.Backend) proxy.Proxy {
 		//logger.Error(result, remote.ExtraConfig)
-		re := ref(remote)  // 这个是可以获取到配置参数的
+		re := ref(remote) // 这个是可以获取到配置参数的
 		ok, err := ConfigGetter(remote.ExtraConfig)
-		if err != nil{ // 不能存在或者不生效的话, 都不能, 都返回默认的
+		if err != nil { // 不能存在或者不生效的话, 都不能, 都返回默认的
+			fmt.Println("不使用插件...")
 			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		}
-		if !ok{
+		if !ok {
+			fmt.Println("不使用插件...")
 			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		} // 如果存在的话, 走插件处理...
+		fmt.Println("使用插件...")
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re), remote.Decoder)
 	}
 
@@ -42,15 +45,15 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 func HTTPRequestExecutor(re client.HTTPRequestExecutor) client.HTTPRequestExecutor {
 	return func(ctx context.Context, req *http.Request) (resp *http.Response, err error) {
 		if err = modifyRequest(req); err != nil {
-			if resp == nil{
-					resp = &http.Response{
-						Request:    req,
-						Header:     http.Header{},
-						StatusCode: http.StatusOK,
-					}
+			if resp == nil {
+				resp = &http.Response{
+					Request:    req,
+					Header:     http.Header{},
+					StatusCode: http.StatusOK,
 				}
+			}
 			respErr := modifyResponse(resp, err)
-			if respErr != nil{
+			if respErr != nil {
 				return
 			}
 			return resp, nil
@@ -79,7 +82,7 @@ func HTTPRequestExecutor(re client.HTTPRequestExecutor) client.HTTPRequestExecut
 }
 
 func modifyRequest(req *http.Request) error {
-	if _, ok := req.Header["X-Sso-Fullticketid"]; !ok{
+	if _, ok := req.Header["X-Sso-Fullticketid"]; !ok {
 		return errors.New("缺少认证header信息")
 	}
 	ticket := req.Header["X-Sso-Fullticketid"][0]
@@ -87,15 +90,16 @@ func modifyRequest(req *http.Request) error {
 	//fmt.Println("获取到的值是:")
 	//fmt.Println(req.Header["X-Sso-Fullticketid"][0])
 	userInfo, err := ssoGetUserModel(ticket)
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("请求校验sso失败:%s", err.Error())
 	}
-	if userInfo.ErrorCode == 4012{
+	if userInfo.ErrorCode == 4012 {
 		return fmt.Errorf("非法的ticket:%s", userInfo.Message)
 	}
-	if userInfo.Data == nil{
+	if userInfo.Data == nil {
 		return fmt.Errorf("当前用户不存在:%s", userInfo.Message)
 	}
+	fmt.Println(userInfo.Data.LoginEmail)
 	req.Header["UserEmail"] = []string{userInfo.Data.LoginEmail}
 	req.Header["AccountGuid"] = []string{userInfo.Data.AccountGuid}
 	return nil
@@ -108,17 +112,17 @@ func modifyResponse(resp *http.Response, err error) error {
 	if resp.StatusCode == 0 {
 		resp.StatusCode = http.StatusOK
 	}
-	if err != nil{
+	if err != nil {
 		rsp := Response{
-			ErrorId:4001,
-			Reason:fmt.Sprintf("认证失败:%s", err.Error()),
-			Desc:fmt.Sprintf("认证失败:%s", err.Error()),
+			ErrorId: 4001,
+			Reason:  fmt.Sprintf("认证失败:%s", err.Error()),
+			Desc:    fmt.Sprintf("认证失败:%s", err.Error()),
 		}
 		response, jsonErr := json.Marshal(rsp)
-		if jsonErr != nil{
-			resp.Body  = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf("数据反序列化失败:%s", jsonErr.Error())))
+		if jsonErr != nil {
+			resp.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf("数据反序列化失败:%s", jsonErr.Error())))
 		}
-		resp.Body  = ioutil.NopCloser(bytes.NewBuffer(response))
+		resp.Body = ioutil.NopCloser(bytes.NewBuffer(response))
 	}
 	return nil
 }
@@ -151,7 +155,6 @@ func (c *Context) SkippingRoundTrip() bool {
 
 var _ context.Context = &Context{Context: context.Background()}
 
-
 func ssoGetUserModel(ticket string) (*SsoTicketUserInfoResponse, error) {
 	token_url := ""
 	reqClient := &http.Client{}
@@ -179,15 +182,15 @@ type SsoTicketUserInfoResponse struct {
 }
 
 type SsoData struct {
-	LoginEmail  string         `json:"LoginEmail"`
-	AccountGuid string         `json:"AccountGuid"`
-	DisplayName string         `json:"DisplayName"`
+	LoginEmail  string `json:"LoginEmail"`
+	AccountGuid string `json:"AccountGuid"`
+	DisplayName string `json:"DisplayName"`
 }
 
 type Response struct {
-	ErrorId int `json:"error_id"`
-	Reason string `json:"reason"`
-	Desc string `json:"desc"`
+	ErrorId int    `json:"error_id"`
+	Reason  string `json:"reason"`
+	Desc    string `json:"desc"`
 }
 
 func ConfigGetter(e config.ExtraConfig) (bool, error) {
@@ -195,6 +198,7 @@ func ConfigGetter(e config.ExtraConfig) (bool, error) {
 	if !ok {
 		return false, nil
 	}
+	fmt.Println("进入判断插件...")
 	return true, nil
 	//data, ok := cfg.(map[string]interface{})
 	//if !ok {
