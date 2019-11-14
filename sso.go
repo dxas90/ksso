@@ -10,6 +10,7 @@ import (
 	"github.com/devopsfaith/krakend/logging"
 	"github.com/devopsfaith/krakend/proxy"
 	"github.com/devopsfaith/krakend/transport/http/client"
+	logger "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -27,35 +28,22 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 	return func(remote *config.Backend) proxy.Proxy {
 		//logger.Error(result, remote.ExtraConfig)
 		re := ref(remote) // 这个是可以获取到配置参数的
-		ok, err := ConfigGetter(remote.ExtraConfig)
 		if err != nil { // 不能存在或者不生效的话, 都不能, 都返回默认的
-			fmt.Println("不使用插件...")
 			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		}
 		if !ok {
-			fmt.Println("不使用插件...")
 			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		} // 如果存在的话, 走插件处理...
-		fmt.Println("使用插件...")
-		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re), remote.Decoder)
+		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re, remote), remote.Decoder)
 	}
 
 }
 
-func HTTPRequestExecutor(re client.HTTPRequestExecutor) client.HTTPRequestExecutor {
+func HTTPRequestExecutor(re client.HTTPRequestExecutor, remote *config.Backend) client.HTTPRequestExecutor {
 	return func(ctx context.Context, req *http.Request) (resp *http.Response, err error) {
-		if err = modifyRequest(req); err != nil {
-			if resp == nil {
-				resp = &http.Response{
-					Request:    req,
-					Header:     http.Header{},
-					StatusCode: http.StatusOK,
-				}
-			}
-			respErr := modifyResponse(resp, err)
-			if respErr != nil {
-				return
-			}
+		if err = checkRequest(req, remote); err != nil {
+			resp = &http.Response{Request:req}
+			verifyResponse(resp, err)
 			return resp, nil
 		}
 		mctx, ok := req.Context().(*Context)
@@ -76,36 +64,45 @@ func HTTPRequestExecutor(re client.HTTPRequestExecutor) client.HTTPRequestExecut
 				Body:       ioutil.NopCloser(bytes.NewBufferString("")),
 			}
 		}
-		err = modifyResponse(resp, nil)
+		verifyResponse(resp, nil)
 		return
 	}
 }
 
-func modifyRequest(req *http.Request) error {
-	if _, ok := req.Header["X-Sso-Fullticketid"]; !ok {
+func checkRequest(req *http.Request, remote *config.Backend) error {
+	configMap, ok, err := ConfigGetter(remote)
+	if err != nil{
+		return err
+	}
+	if !ok{
+		req.Header[configMap["user-email"]] = []string{configMap["anonymous"]}
+		//req.Header["Account-Guid"] = []string{userInfo.Data.AccountGuid}
+		return nil
+	}
+	ssoHeader := configMap["sso-header"]
+	if _, ok := req.Header[ssoHeader]; !ok {
+		logger.Error("缺少认证header信息")
 		return errors.New("缺少认证header信息")
 	}
-	ticket := req.Header["X-Sso-Fullticketid"][0]
-	//fmt.Printf("获取到的请求头是:%s", ticket)
-	//fmt.Println("获取到的值是:")
-	//fmt.Println(req.Header["X-Sso-Fullticketid"][0])
+	ticket := req.Header[ssoHeader][0]
 	userInfo, err := ssoGetUserModel(ticket)
 	if err != nil {
 		return fmt.Errorf("请求校验sso失败:%s", err.Error())
 	}
 	if userInfo.ErrorCode == 4012 {
+		logger.Errorf("非法的ticket:%s", userInfo.Message)
 		return fmt.Errorf("非法的ticket:%s", userInfo.Message)
 	}
 	if userInfo.Data == nil {
+		logger.Errorf("当前用户不存在:%s", userInfo.Message)
 		return fmt.Errorf("当前用户不存在:%s", userInfo.Message)
 	}
-	fmt.Println(userInfo.Data.LoginEmail)
-	req.Header["UserEmail"] = []string{userInfo.Data.LoginEmail}
-	req.Header["AccountGuid"] = []string{userInfo.Data.AccountGuid}
+	req.Header[configMap["user-email"]] = []string{userInfo.Data.LoginEmail}
+	req.Header[configMap["account-guid"]] = []string{userInfo.Data.AccountGuid}
 	return nil
 }
 
-func modifyResponse(resp *http.Response, err error) error {
+func verifyResponse(resp *http.Response, err error) {
 	if resp.Header == nil {
 		resp.Header = http.Header{}
 	}
@@ -124,7 +121,6 @@ func modifyResponse(resp *http.Response, err error) error {
 		}
 		resp.Body = ioutil.NopCloser(bytes.NewBuffer(response))
 	}
-	return nil
 }
 
 var (
@@ -138,28 +134,19 @@ var (
 	ErrEmptyResponse = errors.New("getting the http response from the request executor")
 )
 
-type Context struct {
-	context.Context
-	skipRoundTrip bool
-}
-
-// SkipRoundTrip flags the context to skip the round trip
-func (c *Context) SkipRoundTrip() {
-	c.skipRoundTrip = true
-}
-
-// SkippingRoundTrip returns the flag for skipping the round trip
+//// SkippingRoundTrip returns the flag for skipping the round trip
 func (c *Context) SkippingRoundTrip() bool {
 	return c.skipRoundTrip
 }
-
-var _ context.Context = &Context{Context: context.Background()}
 
 func ssoGetUserModel(ticket string) (*SsoTicketUserInfoResponse, error) {
 	token_url := ""
 	reqClient := &http.Client{}
 	v := url.Values{}
 	req, err := http.NewRequest("GET", token_url, strings.NewReader(v.Encode()))
+	if err != nil{
+		return nil, err
+	}
 	req.Header.Set("ticket", ticket)
 	resp, err := reqClient.Do(req)
 	if err != nil {
@@ -175,42 +162,26 @@ func ssoGetUserModel(ticket string) (*SsoTicketUserInfoResponse, error) {
 
 }
 
-type SsoTicketUserInfoResponse struct {
-	ErrorCode int      `json:"errorCode"`
-	Data      *SsoData `json:"data"`
-	Message   string   `json:"message"`
-}
-
-type SsoData struct {
-	LoginEmail  string `json:"LoginEmail"`
-	AccountGuid string `json:"AccountGuid"`
-	DisplayName string `json:"DisplayName"`
-}
-
-type Response struct {
-	ErrorId int    `json:"error_id"`
-	Reason  string `json:"reason"`
-	Desc    string `json:"desc"`
-}
-
-func ConfigGetter(e config.ExtraConfig) (bool, error) {
-	_, ok := e[Namespace]
-	if !ok {
-		return false, nil
+func ConfigGetter(e config.ExtraConfig) (map[string]string, bool, error) {
+	var(
+		value map[string]string
+		ok bool
+	)
+	if value, ok = e[Namespace];!ok{
+		return value, false, errors.New("请配置sso插件")
 	}
-	fmt.Println("进入判断插件...")
-	return true, nil
-	//data, ok := cfg.(map[string]interface{})
-	//if !ok {
-	//	return false, ErrEmptyResponse
-	//}
-
-	//raw, err := json.Marshal(data)
-	//if err != nil {
-	//	return false, ErrEmptyResponse
-	//}
-	//
-	//r, err := parse.FromJSON(raw)
-	//
-	//return true, nil
+	if _, ok = value["user-email"]; !ok{
+		return value, false, errors.New("缺少后端使用的header信息user-email")
+	}
+	if _, ok = value["account-guid"]; !ok{
+		return value, false, errors.New("缺少后端使用的header信息account-guid")
+	}
+	if _, ok = value["anonymous"]; ok{
+		return value, false, nil
+	}
+	if _, ok = value["sso-header"]; !ok{
+		return value, false, errors.New("缺少认证的header信息sso-header")
+	}
+	logger.Info("调用sso backend proxy")
+	return value, true, nil
 }
