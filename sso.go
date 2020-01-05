@@ -70,11 +70,11 @@ func HTTPRequestExecutor(re client.HTTPRequestExecutor, remote *config.Backend) 
 }
 
 func checkRequest(req *http.Request, remote *config.Backend) error {
-	configMap, ok, err := ConfigGetter(remote)
+	configMap, anonymous, err := ConfigGetter(remote)
 	if err != nil{
 		return err
 	}
-	if !ok{
+	if !anonymous{
 		req.Header[configMap["user-email"]] = []string{configMap["anonymous"]}
 		//req.Header["Account-Guid"] = []string{userInfo.Data.AccountGuid}
 		return nil
@@ -85,7 +85,8 @@ func checkRequest(req *http.Request, remote *config.Backend) error {
 		return errors.New("缺少认证header信息")
 	}
 	ticket := req.Header[ssoHeader][0]
-	userInfo, err := ssoGetUserModel(ticket)
+	ssoUrl := configMap["sso-addr"]
+	userInfo, err := ssoGetUserModel(ticket, ssoUrl)
 	if err != nil {
 		return fmt.Errorf("请求校验sso失败:%s", err.Error())
 	}
@@ -139,11 +140,13 @@ func (c *Context) SkippingRoundTrip() bool {
 	return c.skipRoundTrip
 }
 
-func ssoGetUserModel(ticket string) (*SsoTicketUserInfoResponse, error) {
-	token_url := ""
+func ssoGetUserModel(ticket, ssoUrl string) (*SsoTicketUserInfoResponse, error) {
+	if ssoUrl == ""{
+		return nil, errors.New("sso的地址不能为空")
+	}
 	reqClient := &http.Client{}
 	v := url.Values{}
-	req, err := http.NewRequest("GET", token_url, strings.NewReader(v.Encode()))
+	req, err := http.NewRequest("GET", ssoUrl, strings.NewReader(v.Encode()))
 	if err != nil{
 		return nil, err
 	}
@@ -169,6 +172,9 @@ func ConfigGetter(e config.ExtraConfig) (map[string]string, bool, error) {
 	)
 	if value, ok = e[Namespace];!ok{
 		return value, false, errors.New("请配置sso插件")
+	}
+	if _, ok = value["sso-addr"]; !ok{
+		return value, false, errors.New("缺少访问sso的请求url")
 	}
 	if _, ok = value["user-email"]; !ok{
 		return value, false, errors.New("缺少后端使用的header信息user-email")
