@@ -28,7 +28,7 @@ type EndpointMw func(gin.HandlerFunc) gin.HandlerFunc
 func NewEndpointRateLimiterMw(remote *config.EndpointConfig) EndpointMw {
 	return func(next gin.HandlerFunc) gin.HandlerFunc {
 		return func(c *gin.Context) {
-			err := checkRequest(c.Request, remote)
+			err := checkRequest(c.Request, remote.ExtraConfig)
 			if err != nil{
 				rsp := Response{
 					ErrorId: 4001,

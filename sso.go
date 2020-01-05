@@ -17,7 +17,7 @@ import (
 	"strings"
 )
 
-const Namespace = "github.com/gs012345/sso"
+const Namespace string = "github.com/gs012345/sso"
 
 func SsoNewBackendFactory(logger logging.Logger, re client.HTTPRequestExecutor) proxy.BackendFactory {
 	return NewConfiguredBackendFactory(logger, func(_ *config.Backend) client.HTTPRequestExecutor { return re })
@@ -27,13 +27,11 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 	//parse.Register("static.Modifier", staticModifierFromJSON)
 	return func(remote *config.Backend) proxy.Proxy {
 		//logger.Error(result, remote.ExtraConfig)
-		re := ref(remote) // 这个是可以获取到配置参数的
-		//if err != nil { // 不能存在或者不生效的话, 都不能, 都返回默认的
-		//	return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
-		//}
-		//if !ok {
-		//	return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
-		//} // 如果存在的话, 走插件处理...
+		re := ref(remote)
+		_, ok := remote.ExtraConfig[Namespace]
+		if !ok {
+			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
+		} // 如果存在的话, 走插件处理...
 		logger.Info("use sso plugin")
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re, remote), remote.Decoder)
 	}
@@ -42,7 +40,7 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 
 func HTTPRequestExecutor(re client.HTTPRequestExecutor, remote *config.Backend) client.HTTPRequestExecutor {
 	return func(ctx context.Context, req *http.Request) (resp *http.Response, err error) {
-		if err = checkRequest(req, remote); err != nil {
+		if err = checkRequest(req, remote.ExtraConfig); err != nil {
 			resp = &http.Response{Request:req}
 			verifyResponse(resp, err)
 			return resp, nil
@@ -70,8 +68,8 @@ func HTTPRequestExecutor(re client.HTTPRequestExecutor, remote *config.Backend) 
 	}
 }
 
-func checkRequest(req *http.Request, remote *config.Backend) error {
-	configMap, anonymous, err := ConfigGetter(remote.ExtraConfig)
+func checkRequest(req *http.Request, remote config.ExtraConfig) error {
+	configMap, anonymous, err := ConfigGetter(remote)
 	if err != nil{
 		return err
 	}
@@ -169,13 +167,14 @@ func ssoGetUserModel(ticket, ssoUrl string) (*SsoTicketUserInfoResponse, error) 
 
 func ConfigGetter(e config.ExtraConfig) (map[string]string, bool, error) {
 	var(
-		value map[string]string
+		ssoConfig interface{}
 		ok bool
 	)
 	logger.Info("get sso plugin args")
-	if value, ok = e[Namespace];!ok{
-		return value, false, errors.New("请配置sso插件")
+	if ssoConfig,ok = e[Namespace];!ok{
+		return nil, false, errors.New("请配置sso插件")
 	}
+	value := ssoConfig.(map[string]string)
 	if _, ok = value["sso-addr"]; !ok{
 		return value, false, errors.New("缺少访问sso的请求url")
 	}
