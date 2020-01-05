@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="54e9d4cf-2514-4064-8478-8b06d7d42ab6" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../gateway-agent/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sso.go" beforeDir="false" afterPath="$PROJECT_DIR$/sso.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,6 +15,7 @@
     <session id="760768218">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
+          <entry key="project.closed" value="1" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.opened" value="1" />
         </counts>
@@ -48,8 +47,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sso.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
-              <caret line="147" column="29" selection-start-line="147" selection-start-column="29" selection-end-line="147" selection-end-column="29" />
+            <state relative-caret-position="406">
+              <caret line="154" column="32" lean-forward="true" selection-start-line="154" selection-start-column="32" selection-end-line="154" selection-end-column="32" />
               <folding>
                 <element signature="e#13#340#0" expanded="true" />
               </folding>
@@ -221,8 +220,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/sso.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="147" column="29" selection-start-line="147" selection-start-column="29" selection-end-line="147" selection-end-column="29" />
+        <state relative-caret-position="406">
+          <caret line="154" column="32" lean-forward="true" selection-start-line="154" selection-start-column="32" selection-end-line="154" selection-end-column="32" />
           <folding>
             <element signature="e#13#340#0" expanded="true" />
           </folding>

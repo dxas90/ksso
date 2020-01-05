@@ -71,7 +71,7 @@ func HTTPRequestExecutor(re client.HTTPRequestExecutor, remote *config.Backend) 
 }
 
 func checkRequest(req *http.Request, remote *config.Backend) error {
-	configMap, anonymous, err := ConfigGetter(remote)
+	configMap, anonymous, err := ConfigGetter(remote.ExtraConfig)
 	if err != nil{
 		return err
 	}
