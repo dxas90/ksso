@@ -28,12 +28,13 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 	return func(remote *config.Backend) proxy.Proxy {
 		//logger.Error(result, remote.ExtraConfig)
 		re := ref(remote) // 这个是可以获取到配置参数的
-		if err != nil { // 不能存在或者不生效的话, 都不能, 都返回默认的
-			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
-		}
-		if !ok {
-			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
-		} // 如果存在的话, 走插件处理...
+		//if err != nil { // 不能存在或者不生效的话, 都不能, 都返回默认的
+		//	return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
+		//}
+		//if !ok {
+		//	return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
+		//} // 如果存在的话, 走插件处理...
+		logger.Info("use sso plugin")
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re, remote), remote.Decoder)
 	}
 
@@ -144,6 +145,7 @@ func ssoGetUserModel(ticket, ssoUrl string) (*SsoTicketUserInfoResponse, error) 
 	if ssoUrl == ""{
 		return nil, errors.New("sso的地址不能为空")
 	}
+	logger.Info("request sso ")
 	reqClient := &http.Client{}
 	v := url.Values{}
 	req, err := http.NewRequest("GET", ssoUrl, strings.NewReader(v.Encode()))
@@ -170,6 +172,7 @@ func ConfigGetter(e config.ExtraConfig) (map[string]string, bool, error) {
 		value map[string]string
 		ok bool
 	)
+	logger.Info("get sso plugin args")
 	if value, ok = e[Namespace];!ok{
 		return value, false, errors.New("请配置sso插件")
 	}
