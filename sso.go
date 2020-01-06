@@ -32,7 +32,7 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 		if !ok {
 			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		} // 如果存在的话, 走插件处理...
-		logger.Info("use sso plugin")
+		fmt.Println("use sso plugin...")
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re, remote), remote.Decoder)
 	}
 
@@ -74,18 +74,18 @@ func checkRequest(req *http.Request, remote config.ExtraConfig) error {
 		return err
 	}
 	if !anonymous{
-		req.Header[configMap["user-email"]] = []string{configMap["anonymous"]}
+		req.Header[configMap["user-email"].(string)] = []string{configMap["anonymous"].(string)}
 		//req.Header["Account-Guid"] = []string{userInfo.Data.AccountGuid}
 		return nil
 	}
 	ssoHeader := configMap["sso-header"]
-	if _, ok := req.Header[ssoHeader]; !ok {
+	if _, ok := req.Header[ssoHeader.(string)]; !ok {
 		logger.Error("缺少认证header信息")
 		return errors.New("缺少认证header信息")
 	}
-	ticket := req.Header[ssoHeader][0]
+	ticket := req.Header[ssoHeader.(string)][0]
 	ssoUrl := configMap["sso-addr"]
-	userInfo, err := ssoGetUserModel(ticket, ssoUrl)
+	userInfo, err := ssoGetUserModel(ticket, ssoUrl.(string))
 	if err != nil {
 		return fmt.Errorf("请求校验sso失败:%s", err.Error())
 	}
@@ -97,8 +97,9 @@ func checkRequest(req *http.Request, remote config.ExtraConfig) error {
 		logger.Errorf("当前用户不存在:%s", userInfo.Message)
 		return fmt.Errorf("当前用户不存在:%s", userInfo.Message)
 	}
-	req.Header[configMap["user-email"]] = []string{userInfo.Data.LoginEmail}
-	req.Header[configMap["account-guid"]] = []string{userInfo.Data.AccountGuid}
+
+	req.Header[configMap["user-email"].(string)] = []string{userInfo.Data.LoginEmail}
+	req.Header[configMap["account-guid"].(string)] = []string{userInfo.Data.AccountGuid}
 	return nil
 }
 
@@ -165,7 +166,7 @@ func ssoGetUserModel(ticket, ssoUrl string) (*SsoTicketUserInfoResponse, error) 
 
 }
 
-func ConfigGetter(e config.ExtraConfig) (map[string]string, bool, error) {
+func ConfigGetter(e config.ExtraConfig) (map[string]interface{}, bool, error) {
 	var(
 		ssoConfig interface{}
 		ok bool
@@ -174,7 +175,7 @@ func ConfigGetter(e config.ExtraConfig) (map[string]string, bool, error) {
 	if ssoConfig,ok = e[Namespace];!ok{
 		return nil, false, errors.New("请配置sso插件")
 	}
-	value := ssoConfig.(map[string]string)
+	value := ssoConfig.(map[string]interface{})
 	if _, ok = value["sso-addr"]; !ok{
 		return value, false, errors.New("缺少访问sso的请求url")
 	}

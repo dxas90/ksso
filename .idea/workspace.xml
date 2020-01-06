@@ -2,11 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="54e9d4cf-2514-4064-8478-8b06d7d42ab6" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../gateway-agent/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../gateway-agent/pkg/agollo_config/model.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/configuration_template2222.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/.agollo" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/.agollo" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../gateway-agent/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/agollo_config/agollo_provider.go" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/pkg/agollo_config/agollo_provider.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/app.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/configuration.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/configuration_template.json" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/configuration_template.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/model.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/parse_config.go" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/parse_config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/config/v1/service.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gateway-agent/pkg/load/loader.go" beforeDir="false" afterPath="$PROJECT_DIR$/../gateway-agent/pkg/load/loader.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sso.go" beforeDir="false" afterPath="$PROJECT_DIR$/sso.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sso_http_proxy.go" beforeDir="false" afterPath="$PROJECT_DIR$/sso_http_proxy.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -18,9 +27,9 @@
     <session id="760768218">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="1" />
-          <entry key="project.open.time.0" value="2" />
-          <entry key="project.opened" value="2" />
+          <entry key="project.closed" value="3" />
+          <entry key="project.open.time.0" value="3" />
+          <entry key="project.opened" value="3" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -35,23 +44,23 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="go" value="276" />
+          <entry key="go" value="279" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Go" value="276" />
+          <entry key="Go" value="279" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sso.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="148">
-              <caret line="167" column="31" selection-start-line="167" selection-start-column="31" selection-end-line="167" selection-end-column="31" />
+            <state relative-caret-position="490">
+              <caret line="95" column="29" lean-forward="true" selection-start-line="95" selection-start-column="29" selection-end-line="95" selection-end-column="29" />
               <folding>
                 <element signature="e#13#340#0" expanded="true" />
               </folding>
@@ -77,11 +86,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://D:/GOLand/src/github.com/devopsfaith/krakend/config/config.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="293">
-              <caret line="239" column="5" selection-start-line="239" selection-start-column="5" selection-end-line="239" selection-end-column="5" />
+            <state relative-caret-position="6641">
+              <caret line="241" column="34" selection-start-line="241" selection-start-column="34" selection-end-line="241" selection-end-column="34" />
             </state>
           </provider>
         </entry>
@@ -89,8 +98,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://D:/GOLand/src/github.com/devopsfaith/krakend/config/parser.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="301">
-              <caret line="138" column="35" lean-forward="true" selection-start-line="138" selection-start-column="35" selection-end-line="138" selection-end-column="35" />
+            <state relative-caret-position="3828">
+              <caret line="138" column="35" selection-start-line="138" selection-start-column="35" selection-end-line="138" selection-end-column="35" />
             </state>
           </provider>
         </entry>
@@ -107,7 +116,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/sso_http_proxy.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="551">
+            <state relative-caret-position="638">
               <caret line="30" column="27" selection-start-line="30" selection-start-column="27" selection-end-line="30" selection-end-column="27" />
             </state>
           </provider>
@@ -185,7 +194,7 @@
     <frame x="-8" y="-8" width="1936" height="1066" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.25" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25266525" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -212,17 +221,13 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://D:/GOLand/src/github.com/devopsfaith/krakend/proxy/http.go">
+    <entry file="file://$PROJECT_DIR$/sso.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="696">
-          <caret line="34" column="5" selection-start-line="34" selection-start-column="5" selection-end-line="34" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Go/src/builtin/builtin.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="609">
-          <caret line="21" column="35" selection-start-line="21" selection-start-column="35" selection-end-line="21" selection-end-column="35" />
+        <state relative-caret-position="490">
+          <caret line="95" column="29" lean-forward="true" selection-start-line="95" selection-start-column="29" selection-end-line="95" selection-end-column="29" />
+          <folding>
+            <element signature="e#13#340#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -233,34 +238,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/sso_http_proxy.go">
+    <entry file="file://D:/GOLand/src/github.com/devopsfaith/krakend/proxy/http.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="551">
-          <caret line="30" column="27" selection-start-line="30" selection-start-column="27" selection-end-line="30" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sso.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="148">
-          <caret line="167" column="31" selection-start-line="167" selection-start-column="31" selection-end-line="167" selection-end-column="31" />
-          <folding>
-            <element signature="e#13#340#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://D:/GOLand/src/github.com/devopsfaith/krakend/config/parser.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="301">
-          <caret line="138" column="35" lean-forward="true" selection-start-line="138" selection-start-column="35" selection-end-line="138" selection-end-column="35" />
+        <state relative-caret-position="696">
+          <caret line="34" column="5" selection-start-line="34" selection-start-column="5" selection-end-line="34" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://D:/GOLand/src/github.com/devopsfaith/krakend/config/config.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="293">
-          <caret line="239" column="5" selection-start-line="239" selection-start-column="5" selection-end-line="239" selection-end-column="5" />
+        <state relative-caret-position="6641">
+          <caret line="241" column="34" selection-start-line="241" selection-start-column="34" selection-end-line="241" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/GOLand/src/github.com/devopsfaith/krakend/config/parser.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3828">
+          <caret line="138" column="35" selection-start-line="138" selection-start-column="35" selection-end-line="138" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Go/src/builtin/builtin.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="609">
+          <caret line="21" column="35" selection-start-line="21" selection-start-column="35" selection-end-line="21" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sso_http_proxy.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="638">
+          <caret line="30" column="27" selection-start-line="30" selection-start-column="27" selection-end-line="30" selection-end-column="27" />
         </state>
       </provider>
     </entry>
