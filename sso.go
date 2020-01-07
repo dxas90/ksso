@@ -176,9 +176,6 @@ func ConfigGetter(e config.ExtraConfig) (map[string]interface{}, bool, error) {
 		return nil, false, errors.New("请配置sso插件")
 	}
 	value := ssoConfig.(map[string]interface{})
-	if _, ok = value["sso-addr"]; !ok{
-		return value, false, errors.New("缺少访问sso的请求url")
-	}
 	if _, ok = value["user-email"]; !ok{
 		return value, false, errors.New("缺少后端使用的header信息user-email")
 	}
@@ -187,6 +184,9 @@ func ConfigGetter(e config.ExtraConfig) (map[string]interface{}, bool, error) {
 	}
 	if _, ok = value["anonymous"]; ok{
 		return value, false, nil
+	}
+	if _, ok = value["sso-addr"]; !ok{
+		return value, false, errors.New("缺少访问sso的请求url")
 	}
 	if _, ok = value["sso-header"]; !ok{
 		return value, false, errors.New("缺少认证的header信息sso-header")
