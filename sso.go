@@ -112,7 +112,7 @@ func verifyResponse(resp *http.Response, err error) {
 	}
 	if err != nil {
 		rsp := Response{
-			ErrorId: 4004,
+			ErrorId: 40004,
 			Reason:  fmt.Sprintf("鉴权失败:%s", err.Error()),
 			Desc:    fmt.Sprintf("鉴权失败:%s", err.Error()),
 		}
