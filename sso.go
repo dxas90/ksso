@@ -87,11 +87,11 @@ func checkRequest(req *http.Request, remote config.ExtraConfig) error {
 	ssoUrl := configMap["sso-addr"]
 	userInfo, err := ssoGetUserModel(ticket, ssoUrl.(string))
 	if err != nil {
-		return fmt.Errorf("请求校验sso失败:%s", err.Error())
+		return fmt.Errorf("请求校验鉴权失败:%s", err.Error())
 	}
 	if userInfo.ErrorCode == 4012 {
-		logger.Errorf("非法的ticket:%s", userInfo.Message)
-		return fmt.Errorf("非法的ticket:%s", userInfo.Message)
+		logger.Errorf("原因非法的用户认证信息:%s", userInfo.Message)
+		return fmt.Errorf("原因非法的用户认证信息:%s", userInfo.Message)
 	}
 	if userInfo.Data == nil {
 		logger.Errorf("当前用户不存在:%s", userInfo.Message)
@@ -112,9 +112,9 @@ func verifyResponse(resp *http.Response, err error) {
 	}
 	if err != nil {
 		rsp := Response{
-			ErrorId: 4001,
-			Reason:  fmt.Sprintf("认证失败:%s", err.Error()),
-			Desc:    fmt.Sprintf("认证失败:%s", err.Error()),
+			ErrorId: 4004,
+			Reason:  fmt.Sprintf("鉴权失败:%s", err.Error()),
+			Desc:    fmt.Sprintf("鉴权失败:%s", err.Error()),
 		}
 		response, jsonErr := json.Marshal(rsp)
 		if jsonErr != nil {
