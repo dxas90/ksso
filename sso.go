@@ -122,6 +122,11 @@ func verifyResponse(resp *http.Response, err error) {
 		}
 		resp.Body = ioutil.NopCloser(bytes.NewBuffer(response))
 	}
+
+	if _, ok := resp.Request.Header["X-B3-Traceid"];!ok{
+		return
+	}
+	AddTraceId(resp)
 }
 
 var (
@@ -193,4 +198,27 @@ func ConfigGetter(e config.ExtraConfig) (map[string]interface{}, bool, error) {
 	}
 	logger.Info("调用sso backend proxy")
 	return value, true, nil
+}
+
+// 为返回值添加traceid的信息
+func AddTraceId(resp *http.Response)error{
+	res, err := ioutil.ReadAll(resp.Body)
+	if err != nil{
+		resp.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf("读取数据失败:%s", err.Error())))
+		return nil
+	}
+	result := map[string]interface{}{}
+	err = json.Unmarshal(res,&result)
+	if err != nil {
+		resp.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf("读取数据失败:%s", err.Error())))
+	}
+	if value, ok := resp.Request.Header["X-B3-Traceid"];ok{
+		result["X-B3-Traceid"] = value
+	}
+	response, jsonErr := json.Marshal(result)
+	if jsonErr != nil {
+		resp.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf("处理数据失败:%s", jsonErr.Error())))
+	}
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer(response))
+	return nil
 }
