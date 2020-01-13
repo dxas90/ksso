@@ -19,19 +19,19 @@ import (
 
 const Namespace string = "github.com/gs012345/sso"
 
-func SsoNewBackendFactory(logger logging.Logger, re client.HTTPRequestExecutor, bf proxy.BackendFactory) proxy.BackendFactory {
-	return NewConfiguredBackendFactory(logger, func(_ *config.Backend) client.HTTPRequestExecutor { return re }, bf)
+func SsoNewBackendFactory(logger logging.Logger, re client.HTTPRequestExecutor) proxy.BackendFactory {
+	return NewConfiguredBackendFactory(logger, func(_ *config.Backend) client.HTTPRequestExecutor { return re })
 }
 
-func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend) client.HTTPRequestExecutor, bf proxy.BackendFactory) proxy.BackendFactory {
+func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend) client.HTTPRequestExecutor) proxy.BackendFactory {
 	//parse.Register("static.Modifier", staticModifierFromJSON)
 	return func(remote *config.Backend) proxy.Proxy {
 		//logger.Error(result, remote.ExtraConfig)
 		re := ref(remote)
 		_, ok := remote.ExtraConfig[Namespace]
 		if !ok {
-			return bf(remote)
-			//return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
+			//return bf(remote)
+			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		} // 如果存在的话, 走插件处理...
 		fmt.Println("use sso plugin...")
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re, remote), remote.Decoder)
