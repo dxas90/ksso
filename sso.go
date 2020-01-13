@@ -1,4 +1,4 @@
-package sso
+package ksso
 
 import (
 	"bytes"
@@ -19,18 +19,19 @@ import (
 
 const Namespace string = "github.com/gs012345/sso"
 
-func SsoNewBackendFactory(logger logging.Logger, re client.HTTPRequestExecutor) proxy.BackendFactory {
-	return NewConfiguredBackendFactory(logger, func(_ *config.Backend) client.HTTPRequestExecutor { return re })
+func SsoNewBackendFactory(logger logging.Logger, re client.HTTPRequestExecutor, bf proxy.BackendFactory) proxy.BackendFactory {
+	return NewConfiguredBackendFactory(logger, func(_ *config.Backend) client.HTTPRequestExecutor { return re }, bf)
 }
 
-func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend) client.HTTPRequestExecutor) proxy.BackendFactory {
+func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend) client.HTTPRequestExecutor, bf proxy.BackendFactory) proxy.BackendFactory {
 	//parse.Register("static.Modifier", staticModifierFromJSON)
 	return func(remote *config.Backend) proxy.Proxy {
 		//logger.Error(result, remote.ExtraConfig)
 		re := ref(remote)
 		_, ok := remote.ExtraConfig[Namespace]
 		if !ok {
-			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
+			return bf(remote)
+			//return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		} // 如果存在的话, 走插件处理...
 		fmt.Println("use sso plugin...")
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re, remote), remote.Decoder)
@@ -73,9 +74,13 @@ func checkRequest(req *http.Request, remote config.ExtraConfig) error {
 	if err != nil{
 		return err
 	}
+	// 判断如果请求头中有指定的header的时候, 当作匿名的账户使用
+	if value, ok := req.Header["Anonymous"];ok{
+		req.Header["User-Email"] = value
+		return nil
+	}
 	if !anonymous{
 		req.Header[configMap["user-email"].(string)] = []string{configMap["anonymous"].(string)}
-		//req.Header["Account-Guid"] = []string{userInfo.Data.AccountGuid}
 		return nil
 	}
 	ssoHeader := configMap["sso-header"]
@@ -213,7 +218,7 @@ func AddTraceId(resp *http.Response)error{
 		resp.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf("读取数据失败:%s", err.Error())))
 	}
 	if value, ok := resp.Request.Header["X-B3-Traceid"];ok{
-		result["X-B3-Traceid"] = value
+		result["x-b3-traceid"] = value
 	}
 	response, jsonErr := json.Marshal(result)
 	if jsonErr != nil {
