@@ -20,7 +20,7 @@ type SsoData struct {
 }
 
 type Response struct {
-	ErrorId int    `json:"error_id"`
+	ErrorId int    `json:"error-id"`
 	Reason  string `json:"reason"`
 	Desc    string `json:"desc"`
 }
