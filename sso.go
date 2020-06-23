@@ -33,7 +33,6 @@ func NewConfiguredBackendFactory(logger logging.Logger, ref func(*config.Backend
 			//return bf(remote)
 			return proxy.NewHTTPProxyWithHTTPExecutor(remote, re, remote.Decoder)
 		} // 如果存在的话, 走插件处理...
-		fmt.Println("use sso plugin...")
 		return proxy.NewHTTPProxyWithHTTPExecutor(remote, HTTPRequestExecutor(re, remote), remote.Decoder)
 	}
 
@@ -181,7 +180,6 @@ func ConfigGetter(e config.ExtraConfig) (map[string]interface{}, bool, error) {
 		ssoConfig interface{}
 		ok bool
 	)
-	logger.Info("get sso plugin args")
 	if ssoConfig,ok = e[Namespace];!ok{
 		return nil, false, errors.New("请配置sso插件")
 	}
@@ -201,7 +199,6 @@ func ConfigGetter(e config.ExtraConfig) (map[string]interface{}, bool, error) {
 	if _, ok = value["sso-header"]; !ok{
 		return value, false, errors.New("缺少认证的header信息sso-header")
 	}
-	logger.Info("调用sso backend proxy")
 	return value, true, nil
 }
 
